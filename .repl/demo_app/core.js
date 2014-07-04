@@ -1,0 +1,22 @@
+// Compiled by ClojureScript 0.0-2156
+goog.provide('demo_app.core');
+goog.require('cljs.core');
+goog.require('goog.dom');
+goog.require('om.dom');
+goog.require('goog.events.EventType');
+goog.require('clojure.browser.repl');
+goog.require('om.dom');
+goog.require('goog.events');
+goog.require('goog.dom');
+goog.require('goog.net.XhrIo');
+goog.require('om.core');
+goog.require('om.core');
+goog.require('cljs.reader');
+goog.require('goog.events');
+goog.require('cljs.reader');
+cljs.core.enable_console_print_BANG_.call(null);
+cljs.core.println.call(null,"Hello Dude!");
+demo_app.core.app_state = cljs.core.atom.call(null,new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"list","list",1017226256),new cljs.core.PersistentVector(null, 4, 5, cljs.core.PersistentVector.EMPTY_NODE, ["Lion","Zebra","Buffalo","Antelope"], null)], null));
+om.core.root.call(null,(function (app,owner){return cljs.core.apply.call(null,om.dom.ul,null,cljs.core.map.call(null,(function (text){return React.DOM.li(null,text);
+}),new cljs.core.Keyword(null,"list","list",1017226256).cljs$core$IFn$_invoke$arity$1(app)));
+}),demo_app.core.app_state,new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"target","target",4427965699),document.getElementById("app0")], null));

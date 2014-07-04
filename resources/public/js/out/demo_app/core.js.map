@@ -1,0 +1,10 @@
+{"version":3,
+ "file":
+ "/Users/jakesendar/demo_app/resources/public/js/out/demo_app/core.js",
+ "sources":["core.cljs"],
+ "lineCount":21,
+ "mappings":
+ ";AAAA;;;;;;;;;;;;;;;AAWA,AAACA;AAED,4BAAA,5BAACC;AAED,AAAKC,0BACH,yBAAA,2CAAA,qDAAA,mFAAA,OAAA,QAAA,UAAA,rOAACC",
+ "names":
+ ["cljs.core/enable-console-print!", "cljs.core/println",
+  "demo-app.core/app-state", "cljs.core/atom"]}

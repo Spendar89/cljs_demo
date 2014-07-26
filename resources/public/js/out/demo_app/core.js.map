@@ -2,9 +2,28 @@
  "file":
  "/Users/jakesendar/demo_app/resources/public/js/out/demo_app/core.js",
  "sources":["core.cljs"],
- "lineCount":21,
+ "lineCount":163,
  "mappings":
- "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",
+ "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",
  "names":
- ["cljs.core/enable-console-print!", "cljs.core/println",
-  "demo-app.core/app-state", "cljs.core/atom"]}
+ ["cljs.core/enable-console-print!", "demo-app.core/app-state", "c",
+  "cljs.core.async/chan", "c__5524__auto__",
+  "cljs.core.async.impl.dispatch/run", "f__5525__auto__",
+  "switch__5509__auto__", "state_83408", "state_val_83409",
+  "inst_83403", "inst_83404", "inst_83405", "inst_83406",
+  "cljs.core.async.impl.ioc-helpers/return-chan",
+  "cljs.core.async.impl.ioc-helpers/take!", "statearr-83413",
+  "state-machine__5510__auto__", "ret-value__5511__auto__",
+  "result__5512__auto__", "cljs.core/keyword-identical?", "e83414",
+  "js/Object", "ex__5513__auto__", "statearr-83415",
+  "cljs.core.async.impl.ioc-helpers/process-exception",
+  "state__5526__auto__", "statearr-83416",
+  "cljs.core.async.impl.ioc-helpers/USER-START-IDX",
+  "cljs.core.async.impl.ioc-helpers/run-state-machine-wrapped",
+  "cljs.core.async/put!", "cljs.core/atom", "cljs.core/vec",
+  "demo-app.api/fetch-product-types", "state_83428", "state_val_83429",
+  "inst_83421", "inst_83422", "inst_83423", "inst_83424", "inst_83425",
+  "cljs/core.PersistentHashMap.fromArrays", "inst_83426",
+  "statearr-83433", "e83434", "statearr-83435", "statearr-83436",
+  "om.core/root", "demo-app.product-types.views/product-types",
+  "js/document"]}

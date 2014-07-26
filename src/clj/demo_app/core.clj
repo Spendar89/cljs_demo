@@ -1,31 +1,21 @@
 (ns demo-app.core
-  (:require [compojure.core :refer :all]
-            [cemerick.austin.repls :refer (browser-connected-repl-js)]
-            [net.cgrand.enlive-html :as enlive]
-            [demo-app.util :as util]
+  (:require [demo-app.util :as util]
+            [demo-app.routes :as routes]
             [compojure.handler :as handler]
-            [compojure.route :as route]
             [ring.adapter.jetty :refer [run-jetty]]
-            [ring.util.response :refer [file-response]]
-            [clojure.java.io :as io]))
+            [demo-app.redis :as redis]))
 
-  (enlive/deftemplate index
-    (io/resource "public/html/index.html")
-    []  [:body] (enlive/append
-                (enlive/html [:script (browser-connected-repl-js)])))
+(def app
+  (handler/api routes/app))
 
-  (defroutes app-routes
-    (GET "/" req (index))
-    (route/resources "/")
-    (route/not-found "Not Found"))
+(def repl-env (reset! cemerick.austin.repls/browser-repl-env
+                      (cemerick.austin/repl-env)))
 
-  (def app
-    (handler/site app-routes))
+(defn brepl []
+  (cemerick.austin.repls/cljs-repl repl-env))
 
-(defn run
-  []
+
+(defn run []
   (defonce ^:private server
-    (ring.adapter.jetty/run-jetty #'app-routes {:port 8080 :join? false}))
+    (ring.adapter.jetty/run-jetty #'routes/app {:port 8080 :join? false}))
   server)
-
-

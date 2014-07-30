@@ -1,7 +1,8 @@
 (ns demo-app.routes
   (:require [ring.util.response :refer [response]]
             [ring.middleware.edn :refer [wrap-edn-params]]
-            [demo-app.controllers.product-type-props :as product-type-props]
+            [ring.middleware.reload :refer [wrap-reload]]
+            [ring.middleware.stacktrace :refer [wrap-stacktrace]]
             [demo-app.controllers.products :as products]
             [demo-app.controllers.static :as static]
             [compojure.route :as default]
@@ -13,16 +14,11 @@
 
 (defroutes api
   (context "/api" []
-           (context "/product-type-props" []
-                    (GET "/" [] 
-                         (response (product-type-props/index)))
-                    (GET "/:id" [id] 
-                         (response (product-type-props/show id))))
-           (context "/product-types" []
+           (context "/products" []
                     (GET "/" []
-                         (product-types/index))
+                         (products/index))
                     (POST "/" {edn-params :edn-params} 
-                          (product-types/create edn-params))))) 
+                          (products/create edn-params))))) 
 
 (defroutes static
   (GET "/" req 
@@ -40,5 +36,8 @@
 (defroutes app
   (-> api
       (wrap-edn-params)
-      (wrap-request-logging))
-  static)
+      (wrap-stacktrace)
+      (wrap-reload))
+ (->  static
+     (wrap-reload)
+     (wrap-stacktrace)))

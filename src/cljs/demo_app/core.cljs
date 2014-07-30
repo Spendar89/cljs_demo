@@ -8,17 +8,17 @@
             [clojure.data :as data]
             [clojure.string :as string]
             [clojure.browser.repl]
-            [demo-app.api :refer [GET POST fetch-product-types save-data]]
-            [demo-app.product-types.views :as product-types :refer [product-types]]))
+            [demo-app.api :refer [GET POST fetch-products save-data]]
+            [demo-app.products.views :as products :refer [products]]))
 
 (enable-console-print!)
 
 (def app-state
   (let [c (chan)]
     (go
-      (put! c (atom (vec (<! fetch-product-types)))))
+      (put! c (atom (vec (<! fetch-products)))))
     c))
 (go
   (om.core/root 
-    product-types (<! app-state)
+    products (<! app-state)
     {:target (. js/document (getElementById "app0"))}))

@@ -27,7 +27,14 @@
 (defn read-schema []
   (io/resource "resources/../schema.edn"))
 
-(transact-all (make-conn) (read-schema))
+(defn get-schema []
+  (read-all (read-schema)))
+
+(defn set-schema []
+  (transact-all (make-conn) (read-schema)))
+
+(defn add-to-schema [attr]
+  (d/transact (make-conn) [attr]))
 
 (def db (get-db))
 
@@ -46,13 +53,22 @@
   [e]
   (into (select-keys e [:db/id]) e))
 
-(defn touch-and-convert-entity 
-  "makes touched entity with children components readable"
-  [eid many-attr-name]
-  (let [e (d/touch (d/entity (get-db) eid))]
+(defn touch-entity [eid & [db]]
+  (d/touch (d/entity (or db (get-db)) eid)))
+
+(defn touch-and-convert-entity [eid many-attr-name & [e]]
+  (let [e (or e (touch-entity eid))]
     (assoc (e->hash e) many-attr-name
            (into [] (map #(e->hash %) 
-                         (many-attr-name  e))))))
+                         (vec (many-attr-name  e)))))))
+
+(defn e->om [eid component-keys]
+  (loop [component-keys component-keys
+         om-result nil]
+    (if-let [component-key (first component-keys)]
+      (recur (rest component-keys)
+             (touch-and-convert-entity eid component-key om-result))
+      om-result)))
 
 (defn retract-arr [arr]
   (mapv 
@@ -61,11 +77,9 @@
 
 (defn retract-data [data & [to-add]]
   (when-let [to-delete (:to-delete data)]
-    (let [retract-map (retract-arr to-delete)]
-      (d/transact-async (make-conn) retract-map)
-      (if to-add (d/transact-async (make-conn) [to-add])))))
+    (retract-arr to-delete)))
 
-(defn set-data 
+(defn xset-data 
   "retracts data assigned to :to-delete and adds the rest"
   [data] 
   (if-let [to-add (-> (->> (or (:db/id data) (make-tempid))
@@ -75,6 +89,18 @@
       (retract-data data to-add) 
       (d/transact-async (make-conn) [to-add]))
     (retract-data data)))
+
+(defn data-to-add 
+  [data] 
+  (-> (->> (or (:db/id data) (make-tempid))
+           (assoc data :db/id))
+      (dissoc :to-delete))) 
+
+(defn set-data [data]
+  (let [to-add (map #(data-to-add %) data)
+        to-delete (retract-arr (first (mapv #(:to-delete %) (filter #(some % [:to-delete])  data))))]
+    (d/transact-async (make-conn) to-add)
+    (d/transact-async (make-conn) to-delete)))
 
 (defn has-attribute?
   "Does database have an attribute named attr-name?"

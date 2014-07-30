@@ -8,20 +8,21 @@
    :body (pr-str data)})
 
 (defn index [& [database]]
-  (let [database (or database (db/get-db))
-        products (d/q db/all-products database)
-        entities (map #(db/touch-entity (first %)) products)]
+  (let [products (db/get-all-products database)
+        entities (map 
+                   #(db/e->om (first %) [:product/specs :product/features]) 
+                   products)]
    (generate-response entities)))
 
 (defn show [eid]
-  (db/touch-entity eid))
+  (db/touch-and-convert-entity eid))
 
 (defn create [body]
-    (let [res (db/set-data body)
+    (let [res (db/set-data (:products body))
           db-after (:db-after @res)]
       (index db-after)))
 
 ; first entity hash:
-;(let [e (db/touch-entity (ffirst (d/q db/all-product-types (db/get-db))))]
-;(create e) )
+;(let [e (db/e->om (ffirst (db/get-all-products)) [:product/features :product/specs])]
+;(create  (conj [] e)))
 

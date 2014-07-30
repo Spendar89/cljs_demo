@@ -9,7 +9,6 @@
 (defn reqAsync [url method & [body]]
   (let [c (chan)]
 (go
-  ;(<! (timeout 10000))
   (xhr/send url
             #(put! c (.getResponse (.-target %))) 
             method 
@@ -21,19 +20,19 @@
   (reqAsync url "GET"))
 
 (defn POST [url & [body]]
-  (reqAsync url "POST" (or body {})))
+  (reqAsync url "POST" (assoc {} :products  body)))
 
-(def fetch-product-types
+(def fetch-products
   (let [c (chan)
-        res (GET "/api/product-types")]
+        res (GET "/api/products")]
     (go (put! c (reader/read-string (<! res))))
     c))
 
 (defn save-data [body]
   (let [c (chan)
-        res (POST "/api/product-types" body)]
+        res (POST "/api/products" body)]
     (go (put! c (reader/read-string (<! res))))
     c))
 
-(def chan-create-product-type (chan 1))
+(def chan-create-product (chan 1))
 

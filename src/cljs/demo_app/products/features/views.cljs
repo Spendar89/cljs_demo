@@ -6,6 +6,7 @@
             [om-tools.core :refer-macros [defcomponent]]
             [cljs.core.async :refer [put! chan <! >! timeout]]
             [clojure.data :as data]
+            [demo-app.util :as util]
             [clojure.string :as string]))
 
 
@@ -32,4 +33,4 @@
                             (dom/a {:class "btn btn-danger"
                                     :on-click #(do
                                                  (.preventDefault %)
-                                                 (handle-delete @data))} "Delete")))))
+                                                 (util/handle-delete @data))} "Delete")))))

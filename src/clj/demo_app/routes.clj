@@ -18,8 +18,8 @@
            (context "/products" []
                     (GET "/" []
                          (products/index))
-                    ;(OPTIONS "/" []
-                         ;(products/index))
+                    (OPTIONS "/" []
+                         (products/index))
                     (POST "/" {edn-params :edn-params} 
                           (products/create edn-params))
                     (DELETE "/" {edn-params :edn-params} 
@@ -33,8 +33,9 @@
 
 (defroutes app
   (-> api
-      (wrap-cors :access-control-allow-origin "*"
-                  :access-control-allow-methods  [:get :put :post :delete])
+      (wrap-cors :access-control-allow-origin #"http://localhost:3449"
+                 :access-control-allow-headers ["Origin" "X-Requested-With" "Content-Type" "Accept"]
+                 :access-control-allow-methods  [:get :options :put :post :delete])
       (wrap-request-logging)
       (wrap-edn-params)
       (wrap-stacktrace)

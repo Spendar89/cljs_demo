@@ -92,8 +92,8 @@
     (d/transact-async (make-conn) to-add)
     (d/transact-async (make-conn) to-delete)))
 
-(defn delete-data [id]
-  (let [tx-data (retract-arr [id])]
+(defn delete-data [data]
+  (let [tx-data (retract-arr [data])]
    (d/transact-async (make-conn) tx-data)))
 
 

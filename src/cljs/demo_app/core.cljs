@@ -7,6 +7,7 @@
             [cljs.core.async :refer [put! chan <! >! timeout]]
             [clojure.data :as data]
             [clojure.string :as string]
+            [demo-app.util :as util :refer [tx-save-chan]]
             [demo-app.controller :as controller :refer [controller]]))
 
 (enable-console-print!)
@@ -25,4 +26,4 @@
        (.log js/console (:db/id (first (:old-value tx-data)))))
 
      (when (= :sync-data (:tag tx-data))
-       (put! controller/tx-save-chan @root-cursor)))})
+       (put! tx-save-chan @root-cursor)))})

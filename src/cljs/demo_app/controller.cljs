@@ -8,15 +8,10 @@
             [clojure.data :as data]
             [clojure.string :as string]
             [demo-app.api :as api]
+            [demo-app.util :as util :refer [tx-delete-chan tx-save-chan]]
             [demo-app.products.views :as products :refer [products]]))
 
 (enable-console-print!)
-
-(def tx-save-chan (chan))
-
-(def tx-delete-chan (chan))
-
-
 
 (defn tx-save-loop [data]
   (go
@@ -24,9 +19,8 @@
       (let [d (<! tx-save-chan)
             saved (api/save-data d)]
         (.log js/console "SAVING")
-        (om/update! data (vec (<! saved)))
+        (om/update! data :products (vec (<! saved)))
         (.log js/console "SAVED")))))
-
 
 (defn tx-delete-loop [data korks chan]
   (go
@@ -34,7 +28,7 @@
       (let [delete-id (<! tx-delete-chan)
             deleted (api/delete-data delete-id)]
         (.log js/console "DELETING" delete-id)
-        (om/update! data (vec (<! deleted)))
+        (om/update! data :products (vec (<! deleted)))
         (.log js/console "DELETED")))))
 
 (defcomponent controller [data owner]

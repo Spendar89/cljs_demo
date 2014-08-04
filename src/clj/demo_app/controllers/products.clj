@@ -26,7 +26,8 @@
       (index db-after)))
 
 (defn delete [body]
-    (let [res (db/delete-data (:db/id body))
+  (prn "IM DELETINGGGG " body)
+    (let [res (db/delete-data body)
           db-after (:db-after @res)]
       (index db-after)))
 

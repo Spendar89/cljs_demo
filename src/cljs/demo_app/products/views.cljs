@@ -8,17 +8,18 @@
             [clojure.data :as data]
             [clojure.string :as string]
             [demo-app.products.specs.views :as specs :refer [specs]]
-            [demo-app.products.features.views :as features :refer [feature]]
-            [demo-app.api :refer [GET POST fetch-products save-data]]))
+            [demo-app.products.features.views :as features :refer [feature]]))
 
-(defn save-loop [data chan]
-  (go
-    (while true
-      (let [d (<! chan)
-            saved (save-data d)]
-        (.log js/console "SAVING")
-        (om/update! data (vec (<! saved)))
-        (.log js/console "SAVED")))))
+
+
+;(defn save-loop [data chan]
+  ;(go
+    ;(while true
+      ;(let [d (<! chan)
+            ;saved (save-data d)]
+        ;(.log js/console "SAVING")
+        ;(om/update! data (vec (<! saved)))
+        ;(.log js/console "SAVED")))))
 
 (defn add-loop [data chan]
   (go 
@@ -26,27 +27,29 @@
       (let [d (<! chan)]
         (om/transact! data 
                       (fn [xs] 
-                        (conj xs d)))))))
+                        (vec (cons d xs))))))))
 
-(defn delete-loop [data chan]
+(defn add-feature [data]
+  (let [new-feature {:feature/headline ""
+                     :feature/body ""}]
+    (om/transact! data :product/features #(vec (cons new-feature %)))))
+
+(defn delete-thing [coll thing]
+  (vec (remove #(== thing %) coll)))
+
+(defn delete-product-loop [data chan]
   (go 
     (while true
-      (let [d (<! chan)
-            to-delete (assoc {} :to-delete (conj [] (into {} d)))]
-        (om/transact! data
-                      (fn [xs] (vec (remove #(== d %) xs))))
-        (<! (save-data (conj [] to-delete)))))))
+      (let [product (<! chan)]
+        (om/transact! data #(delete-thing % product))))))
 
-(defcomponent product-view [data owner {:keys [save-chan delete-chan add-chan] :as opts}]
+(defcomponent product-view [data owner {:keys [save-chan delete-chan] :as opts}]
   (init-state [_]
-              {:add-feature-chan (chan)
-               :delete-feature-chan (chan)})
+              {:delete-feature-chan (chan)})
   (will-mount [_]
-              (add-loop 
-                (:product/features data) (om/get-state owner :add-feature-chan))
-              (delete-loop
+              (delete-product-loop
                 (:product/features data) (om/get-state owner :delete-feature-chan)))
-  (render-state [_ {:keys [add-feature-chan delete-feature-chan] :as state}]
+  (render-state [_ {:keys [delete-feature-chan] :as state}]
           (dom/div {:class "col-sm-12 product-view"} 
             (dom/h2 (:product/name data))
             (dom/div
@@ -57,7 +60,7 @@
                                    :value (:product/name data)                          
                                    :on-change #(om/update! data 
                                                            :product/name 
-                                                           (.. % -target -value))}))
+                                                           (.. % -target -value) :sync-data)}))
               (dom/div {:class "form-group"}
                        (dom/label {:class "control-label"} "Category")
                        (dom/input {:type "text"
@@ -65,8 +68,8 @@
                                    :value (:product/category data)                          
                                    :on-change #(om/update! data 
                                                            :product/category 
-                                                           (.. % -target -value))}))
-              (om/build specs data)
+                                                           (.. % -target -value) :sync-data)}))
+              (om/build specs (:product/specs data))
               (dom/div {:class "form-group col-sm-12"}
                        (dom/h4 {:class "col-sm-2"} "Features")
                        (dom/div {:class "col-sm-2"}
@@ -74,45 +77,38 @@
                                         :href "#"
                                         :on-click #(do
                                                      (.preventDefault %)
-                                                     (put! add-feature-chan 
-                                                         {:feature/headline "" 
-                                                          :feature/body ""}))} 
+                                                     (add-feature data))} 
                                        "New")))
-              (om/build-all feature (:product/features data) {:opts state})
+              (om/build-all feature (:product/features data) 
+                            {:opts {:handle-delete (fn [ft] 
+                                                     (om/transact! data :product/features 
+                                                                   #(delete-thing % ft)))}})
               (dom/div {:class "form-group"}
                        (dom/a {:class "form-control btn btn-danger"
                                :on-click #(put! delete-chan @data)} "Delete Product"))))))
 
+(def add-product-chan (chan))
+
 (defcomponent products [data owner]
   (init-state [_]
               {:save-chan (chan)
-               :add-chan (chan)
                :delete-chan (chan)})
   (will-mount [_]
-              (save-loop 
-                data (om/get-state owner :save-chan))
-              (delete-loop
+              (delete-product-loop
                 data (om/get-state owner :delete-chan))
-              (add-loop 
-                data (om/get-state owner :add-chan)))
-  (render-state [_ {:keys [save-chan add-chan delete-chan] :as state}]
+              (add-loop data add-product-chan))
+  (render-state [_ {:keys [save-chan delete-chan] :as state}]
                 (dom/div {:class "col-sm-12"}
-                         (dom/div {:class "col-sm-6"}
-                                  (om/build-all product-view data 
-                                                {:opts state}))
-                         (dom/div {:class "col-sm-6 form-group"}
+                         
+                         (dom/div {:class "col-sm-12 form-group"}
                                   (dom/h2
                                     (dom/a {:class "btn form-control btn-primary"
-                                            :on-click #(put! add-chan 
+                                            :on-click #(put! add-product-chan 
                                                              {:product/name "" 
                                                               :product/category "default"
                                                               :product/specs []
                                                               :product/features []})} 
-                                           "New Product"))
-                                  (dom/h2
-                                    (dom/a {:class "btn form-control btn-primary"
-                                            :href "#"
-                                            :on-click #(do
-                                                         (.preventDefault %)
-                                                         (put! save-chan @data))} 
-                                           "Save"))))))
+                                           "New Product")))
+                         (dom/div {:class "col-sm-12"}
+                                  (om/build-all product-view data 
+                                                {:opts state})))))

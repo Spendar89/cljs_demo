@@ -7,9 +7,10 @@
             [clojure.string :as string]))
 
 (defn reqAsync [url method & [body]]
-  (let [c (chan)]
+  (let [c (chan)
+        full-url (str "http://localhost:3000" url)]
 (go
-  (xhr/send url
+  (xhr/send full-url
             #(put! c (.getResponse (.-target %))) 
             method 
             (when body (pr-str body))  
@@ -20,7 +21,10 @@
   (reqAsync url "GET"))
 
 (defn POST [url & [body]]
-  (reqAsync url "POST" (assoc {} :products  body)))
+  (reqAsync url "POST" body))
+
+(defn DELETE [url & [body]]
+  (reqAsync url "DELETE" body))
 
 (def fetch-products
   (let [c (chan)
@@ -28,9 +32,15 @@
     (go (put! c (reader/read-string (<! res))))
     c))
 
-(defn save-data [body]
-  (let [c (chan)
+(defn save-data [body & [tx-chan]]
+  (let [c (or tx-chan (chan))
         res (POST "/api/products" body)]
+    (go (put! c (reader/read-string (<! res))))
+    c))
+
+(defn delete-data [body]
+  (let [c (chan)
+        res (DELETE "/api/products" body)]
     (go (put! c (reader/read-string (<! res))))
     c))
 

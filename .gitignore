@@ -6,10 +6,13 @@ pom.xml
 pom.xml.asc
 *.jar
 *.class
+*.js
+/repl
 /.lein-*
 /.nrepl-port
 pom.xml
 /.repl
 .DS_Store
 /out/
-/resources/public/js/*
+/resources/public/js
+/resources/public/vendor

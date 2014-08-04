@@ -4,7 +4,10 @@
 
 (defn generate-response [data & [status]]
   {:status (or status 200)
-   :headers {"Content-Type" "application/edn"}
+   :headers {"Content-Type" "application/edn"
+             "Access-Control-Allow-Origin" "*"
+             "Access-Control-Allow-Methods" "GET, OPTIONS, POST, DELETE"
+             "Access-Control-Allow-Headers" "Origin, X-Requested-With, Content-Type, Accept"}
    :body (pr-str data)})
 
 (defn index [& [database]]
@@ -19,6 +22,11 @@
 
 (defn create [body]
     (let [res (db/set-data (:products body))
+          db-after (:db-after @res)]
+      (index db-after)))
+
+(defn delete [body]
+    (let [res (db/delete-data (:db/id body))
           db-after (:db-after @res)]
       (index db-after)))
 

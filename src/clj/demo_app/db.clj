@@ -59,8 +59,10 @@
 (defn touch-and-convert-entity [eid many-attr-name & [e]]
   (let [e (or e (touch-entity eid))]
     (assoc (e->hash e) many-attr-name
-           (into [] (map #(e->hash %) 
-                         (vec (many-attr-name  e)))))))
+           (->> (map #(e->hash %) (many-attr-name  e))
+                (sort-by :db/id)
+                (reverse)
+                (vec)))))
 
 (defn e->om [eid component-keys]
   (loop [component-keys component-keys
@@ -75,21 +77,6 @@
     #(merge [:db.fn/retractEntity] (:db/id %)) 
     arr))
 
-(defn retract-data [data & [to-add]]
-  (when-let [to-delete (:to-delete data)]
-    (retract-arr to-delete)))
-
-(defn xset-data 
-  "retracts data assigned to :to-delete and adds the rest"
-  [data] 
-  (if-let [to-add (-> (->> (or (:db/id data) (make-tempid))
-                           (assoc data :db/id))
-                      (dissoc :to-delete))]
-    (or 
-      (retract-data data to-add) 
-      (d/transact-async (make-conn) [to-add]))
-    (retract-data data)))
-
 (defn data-to-add 
   [data] 
   (-> (->> (or (:db/id data) (make-tempid))
@@ -98,17 +85,16 @@
 
 (defn set-data [data]
   (let [to-add (map #(data-to-add %) data)
-        to-delete (retract-arr (first (mapv #(:to-delete %) (filter #(some % [:to-delete])  data))))]
+        to-delete (retract-arr 
+                    (first 
+                      (mapv #(:to-delete %) 
+                            (filter #(some % [:to-delete]) data))))]
     (d/transact-async (make-conn) to-add)
     (d/transact-async (make-conn) to-delete)))
 
-(defn has-attribute?
-  "Does database have an attribute named attr-name?"
-  [db attr-name]
-  (-> (d/entity db attr-name)
-      :db.install/_attribute
-      boolean))
+(defn delete-data [id]
+  (let [tx-data (retract-arr [id])]
+   (d/transact-async (make-conn) tx-data)))
 
-;(d/transact (make-conn) [{:db/id (make-tempid)
-;                         :product/name "Dreamer"
-;                        :product/category "sock"}])
+
+

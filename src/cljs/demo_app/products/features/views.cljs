@@ -9,8 +9,7 @@
             [clojure.string :as string]))
 
 
-(defcomponent feature [data owner 
-                          {:keys [delete-feature-chan] :as opts}]
+(defcomponent feature [data owner {:keys [handle-delete] :as opts}]
   (render [_]
           (dom/div {:class "form-group col-sm-12"}
                    (dom/div {:class "col-sm-5"}
@@ -20,7 +19,7 @@
                                         :value (:feature/headline data) 
                                         :on-change #(om/update! data 
                                                                 :feature/headline 
-                                                                (.. % -target -value))}))
+                                                                (.. % -target -value) :sync-data)}))
                    (dom/div {:class "col-sm-5"}
                             (dom/input {:type "text" 
                                         :class "form-control"
@@ -28,9 +27,9 @@
                                         :value (:feature/body data) 
                                         :on-change #(om/update! data 
                                                                 :feature/body
-                                                                (.. % -target -value))}))
+                                                                (.. % -target -value) :sync-data)}))
                    (dom/div {:class "col-sm-2"}
                             (dom/a {:class "btn btn-danger"
                                     :on-click #(do
                                                  (.preventDefault %)
-                                                 (put! delete-feature-chan @data))} "Delete")))))
+                                                 (handle-delete @data))} "Delete")))))

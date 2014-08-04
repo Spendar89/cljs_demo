@@ -7,18 +7,22 @@
             [cljs.core.async :refer [put! chan <! >! timeout]]
             [clojure.data :as data]
             [clojure.string :as string]
-            [clojure.browser.repl]
-            [demo-app.api :refer [GET POST fetch-products save-data]]
-            [demo-app.products.views :as products :refer [products]]))
+            [demo-app.controller :as controller :refer [controller]]))
 
 (enable-console-print!)
 
-(def app-state
-  (let [c (chan)]
-    (go
-      (put! c (atom (vec (<! fetch-products)))))
-    c))
-(go
-  (om.core/root 
-    products (<! app-state)
-    {:target (. js/document (getElementById "app0"))}))
+(def app-state 
+  (atom {:products []
+         :to-delete []}))
+
+(om.core/root 
+  controller
+  app-state
+  {:target (. js/document (getElementById "app0"))
+   :tx-listen
+   (fn [tx-data root-cursor]
+     (when (= :sync-data-delete (:tag tx-data))
+       (.log js/console (:db/id (first (:old-value tx-data)))))
+
+     (when (= :sync-data (:tag tx-data))
+       (put! controller/tx-save-chan @root-cursor)))})
